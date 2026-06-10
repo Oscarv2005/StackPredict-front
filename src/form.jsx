@@ -4,7 +4,8 @@ import "./index.css";
 // Set VITE_API_URL in your Vercel project environment variables.
 // e.g. https://your-flask-api.onrender.com
 // For local dev, create a .env file with: VITE_API_URL=http://localhost:5000
-const API_URL = import.meta.env.VITE_API_URL || "stack-predict-py.vercel.app";
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://stack-predict-py.vercel.app";
 
 const fields = [
   { name: "Administrative", label: "Admin pages visited", placeholder: "3" },
