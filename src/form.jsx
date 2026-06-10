@@ -1,6 +1,11 @@
 import { useState } from "react";
 import "./index.css";
 
+// Set VITE_API_URL in your Vercel project environment variables.
+// e.g. https://your-flask-api.onrender.com
+// For local dev, create a .env file with: VITE_API_URL=http://localhost:5000
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const fields = [
   { name: "Administrative", label: "Admin pages visited", placeholder: "3" },
   {
@@ -26,6 +31,16 @@ const fields = [
 
 const emptyForm = Object.fromEntries(fields.map((f) => [f.name, ""]));
 
+function validate(formData) {
+  const bounce = parseFloat(formData.BounceRates);
+  const exit = parseFloat(formData.ExitRates);
+  if (isNaN(bounce) || bounce < 0 || bounce > 1)
+    return "Bounce rate must be a number between 0 and 1.";
+  if (isNaN(exit) || exit < 0 || exit > 1)
+    return "Exit rate must be a number between 0 and 1.";
+  return null;
+}
+
 function Form() {
   const [formData, setFormData] = useState(emptyForm);
   const [result, setResult] = useState(null);
@@ -39,10 +54,17 @@ function Form() {
 
   const handleSubmit = async () => {
     if (!isComplete || loading) return;
+
+    const validationError = validate(formData);
+    if (validationError) {
+      setResult({ type: "error", message: validationError });
+      return;
+    }
+
     setLoading(true);
     setResult(null);
     try {
-      const res = await fetch("http://localhost:3000/predict", {
+      const res = await fetch(`${API_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -60,6 +82,7 @@ function Form() {
           type: "error",
           message:
             data.error ||
+            data.message ||
             "An evaluation exception occurred processing the dataset attributes.",
         });
       }
@@ -67,7 +90,7 @@ function Form() {
       setResult({
         type: "error",
         message:
-          "Network core error. Verify your port 3000 Node express server instance is executing.",
+          "Network error. Could not reach the prediction API. Check that your backend is deployed and VITE_API_URL is set correctly.",
       });
     } finally {
       setLoading(false);
