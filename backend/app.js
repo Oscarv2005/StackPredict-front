@@ -3,7 +3,14 @@ const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
-app.use(cors());
+
+// Explicit CORS configuration to prevent browser network blocking
+app.use(cors({
+  origin: "*", // Allows all domains. For production, replace "*" with "https://stackpredict-front.vercel.app"
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
 // Strip any trailing slash so `${PYTHON_API}/predict` never becomes "//predict"
@@ -20,7 +27,7 @@ router.get("/", async (req, res) => {
       status: "StackPredict node orchestration gateway active.",
       ...response.data,
     });
-  } catch {
+  } catch (error) {
     res.json({ status: "StackPredict node orchestration gateway active." });
   }
 });
