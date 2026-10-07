@@ -1,10 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
-    "app": {
-      "root": ".",
-      "framework": "flask"
-    },
     "backend": {
       "root": "backend",
       "framework": "express"
