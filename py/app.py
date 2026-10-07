@@ -5,7 +5,6 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
@@ -17,7 +16,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+
+# Bulletproof CORS for Vercel Serverless
+# This ensures CORS headers are attached to EVERY response, even 500 errors.
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
 
 BASE_DIR = Path(__file__).parent
 ARTIFACT_DIR = Path("/tmp") if os.environ.get("VERCEL") else BASE_DIR
@@ -62,22 +69,29 @@ def get_bundle():
     return _bundle
 
 
-@app.get("/")
+@app.route("/", methods=["GET", "OPTIONS"])
 def health():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     try:
         return jsonify(r2_percentage=f"{get_bundle()['r2_pct']}%"), 200
-    except Exception:
+    except Exception as e:
         logger.exception("Model initialization failed")
-        return jsonify(error="Model unavailable"), 500
+        return jsonify(error=str(e)), 500
 
 
-@app.post("/predict")
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+        
     try:
         bundle = get_bundle()
-    except Exception:
+    except Exception as e:
         logger.exception("Model initialization failed")
-        return jsonify(error="Model unavailable"), 500
+        # Returning the actual exception string helps debug if Vercel failed to load the CSV
+        return jsonify(error=str(e)), 500
 
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
