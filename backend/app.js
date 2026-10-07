@@ -3,14 +3,13 @@ const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-const PYTHON_API =
-  process.env.PYTHON_API || "http://localhost:5000";
+const PYTHON_API = process.env.PYTHON_API || "http://localhost:5000";
+const router = express.Router();
 
-app.get("/", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const response = await axios.get(`${PYTHON_API}/`, { timeout: 15000 });
     res.json({
@@ -22,12 +21,11 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.post("/predict", async (req, res) => {
+router.post("/predict", async (req, res) => {
   try {
     const response = await axios.post(`${PYTHON_API}/predict`, req.body, {
       timeout: 15000,
     });
-
     res.json(response.data);
   } catch (err) {
     if (err.response && err.response.data) {
@@ -39,7 +37,6 @@ app.post("/predict", async (req, res) => {
           "Upstream data validation mismatch.",
       });
     }
-
     res.status(500).json({
       status: "error",
       error: "Core ML Matrix Server structural timeout.",
@@ -47,8 +44,13 @@ app.post("/predict", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// Served at /api/* on Vercel, and also at /* for local development
+app.use("/api", router);
+app.use("/", router);
 
-app.listen(PORT, () => {
-  console.log(`Node reverse proxy running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Node reverse proxy running on port ${PORT}`));
+}
+
+module.exports = app;
