@@ -14,7 +14,7 @@ function App() {
         <Hero setPage={setPage} />
       </div>
       <div id="form" className={`page ${page === "form" ? "active" : ""}`}>
-        <Form />
+        {page === "form" && <Form />}
       </div>
     </div>
   );
