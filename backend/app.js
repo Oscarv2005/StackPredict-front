@@ -6,7 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PYTHON_API = process.env.PYTHON_API || "https://stackpredict-front-py-4foh.vercel.app/";
+// Strip any trailing slash so `${PYTHON_API}/predict` never becomes "//predict"
+const PYTHON_API = (
+  process.env.PYTHON_API || "https://stackpredict-front-py-4foh.vercel.app"
+).replace(/\/+$/, "");
+
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -35,6 +39,12 @@ router.post("/predict", async (req, res) => {
           err.response.data.message ||
           err.response.data.error ||
           "Upstream data validation mismatch.",
+      });
+    }
+    if (err.code === "ECONNABORTED" || err.code === "ETIMEDOUT") {
+      return res.status(504).json({
+        status: "error",
+        error: "The ML server is waking up or took too long. Please retry in a few seconds.",
       });
     }
     res.status(500).json({
