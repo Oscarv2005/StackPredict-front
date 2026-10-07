@@ -4,16 +4,14 @@ const axios = require("axios");
 
 const app = express();
 
-// Explicit CORS configuration to prevent browser network blocking
 app.use(cors({
-  origin: "*", // Allows all domains. For production, replace "*" with "https://stackpredict-front.vercel.app"
+  origin: "*",
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
 
-// Strip any trailing slash so `${PYTHON_API}/predict` never becomes "//predict"
 const PYTHON_API = (
   process.env.PYTHON_API || "https://stackpredict-front-py-4foh.vercel.app"
 ).replace(/\/+$/, "");
@@ -61,7 +59,6 @@ router.post("/predict", async (req, res) => {
   }
 });
 
-// Served at /api/* on Vercel, and also at /* for local development
 app.use("/api", router);
 app.use("/", router);
 
