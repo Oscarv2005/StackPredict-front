@@ -1,21 +1,24 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "py/app.py",
-      "use": "@vercel/python",
-      "config": { "includeFiles": ["py/model_bundle.pkl", "py/online_shoppers_intention.csv"] }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "py": {
+      "root": "py",
+      "framework": "flask"
     },
-    { "src": "backend/app.js", "use": "@vercel/node" },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+    "backend": {
+      "root": "backend",
+      "framework": "express",
+      "bindings": [
+        { "type": "service", "service": "py", "format": "url", "env": "PY_URL" }
+      ]
+    },
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite"
     }
-  ],
-  "routes": [
-    { "src": "/py/(.*)", "dest": "py/app.py" },
-    { "src": "/api/(.*)", "dest": "backend/app.js" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
   ]
 }
