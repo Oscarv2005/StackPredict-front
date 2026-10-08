@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PYTHON_API = process.env.PYTHON_API || "http://localhost:5000";
+const PYTHON_API = process.env.PYTHON_API || "https://stack-predict-front-i1tm.vercel.app/";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
