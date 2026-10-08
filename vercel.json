@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "py/app.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["py/model_bundle.pkl", "py/online_shoppers_intention.csv"] }
+    },
+    { "src": "backend/app.js", "use": "@vercel/node" },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    }
+  ],
+  "routes": [
+    { "src": "/py/(.*)", "dest": "py/app.py" },
+    { "src": "/api/(.*)", "dest": "backend/app.js" },
+    { "src": "/(.*)", "dest": "frontend/$1" }
+  ]
+}
