@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import "./index.css";
 
-   const API_URL = import.meta.env.VITE_API_URL || "https://stack-predict-front-i1tm.vercel.app/";
+  const API_URL =
+  import.meta.env.VITE_API_URL || "https://stack-predict-front-pzgw.vercel.app/api";
 
 const fields = [
   { name: "Administrative", label: "Admin pages visited", placeholder: "3" },
