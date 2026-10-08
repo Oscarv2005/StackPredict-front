@@ -3,19 +3,10 @@ const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
-
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-
+app.use(cors());
 app.use(express.json());
 
-const PYTHON_API = (
-  process.env.PYTHON_API || "https://stackpredict-front-py-4foh.vercel.app"
-).replace(/\/+$/, "");
-
+const PYTHON_API = process.env.PYTHON_API || "http://localhost:5000";
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -25,7 +16,7 @@ router.get("/", async (req, res) => {
       status: "StackPredict node orchestration gateway active.",
       ...response.data,
     });
-  } catch (error) {
+  } catch {
     res.json({ status: "StackPredict node orchestration gateway active." });
   }
 });
@@ -46,12 +37,6 @@ router.post("/predict", async (req, res) => {
           "Upstream data validation mismatch.",
       });
     }
-    if (err.code === "ECONNABORTED" || err.code === "ETIMEDOUT") {
-      return res.status(504).json({
-        status: "error",
-        error: "The ML server is waking up or took too long. Please retry in a few seconds.",
-      });
-    }
     res.status(500).json({
       status: "error",
       error: "Core ML Matrix Server structural timeout.",
@@ -59,6 +44,7 @@ router.post("/predict", async (req, res) => {
   }
 });
 
+// Served at /api/* on Vercel, and also at /* for local development
 app.use("/api", router);
 app.use("/", router);
 
